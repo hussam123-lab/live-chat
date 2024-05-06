@@ -1,6 +1,9 @@
+from typing import Dict, List, Optional
 from pydantic import BaseModel, PrivateAttr
 from pymongo import MongoClient
 from fastapi.encoders import jsonable_encoder
+
+from app.domain.users.user import User
 
 class MongoDbClient(BaseModel):
     _instance = None
@@ -21,7 +24,23 @@ class MongoDbClient(BaseModel):
             self._db = self._client[self._database_name]
             self.__class__._is_initialized = True
     
-    async def insert_one(self, collection: str, document: dict) -> None:
+    async def insert_one(self, collection: str, document: dict) -> User:
         # Insert document into the specified MongoDB collection
         json_dict =  jsonable_encoder(document)
-        await self._db[collection].insert_one(json_dict)
+        self._db[collection].insert_one(json_dict)
+        user = User(**json_dict)
+        return user
+    
+    async def find_one(self, collection: str, query: Dict) -> Optional[Dict]:
+        json_dict =  jsonable_encoder(query)
+        result = self._db[collection].find_one(json_dict)
+        return result
+    
+    async def find(self, collection: str) -> Optional[List[Dict]]:
+        result = self._db[collection].find()
+        return result
+    
+    async def update_one(self,collection: str, query: Dict, update: Dict) -> None:
+        json_query = jsonable_encoder(query)
+        json_update = jsonable_encoder(update)
+        self._db[collection].update_one(json_query, {'$set': json_update})
