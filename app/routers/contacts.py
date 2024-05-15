@@ -4,6 +4,7 @@ from app.dependencies import get_user_service
 from app.domain.users.contacts_request import ContactsRequest
 from app.domain.users.user import User
 from app.domain.users.user_request import UserRequest
+from app.exceptions.user_service_exceptions import UserNotFoundException
 from app.services.user_service import UserService
 from fastapi import APIRouter, Depends
 from uuid import UUID, uuid4
@@ -34,6 +35,7 @@ async def add_contact_by_phone_number(user_id: UUID, contacts_request: ContactsR
         contact = await user_service.get_user_by_number(contacts_request.phone_number)
         await user_service.add_contact_to_user(user=user,contact=contact.user_id)
         
-    
+    except UserNotFoundException as e:
+        raise e
     except ValidationError as err:
         print("Validation error:", err)

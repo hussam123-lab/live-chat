@@ -4,6 +4,9 @@ from uuid import UUID
 from app.client.mongo_client import MongoDbClient
 from app.domain.users.user import User
 from pydantic import BaseModel, PrivateAttr
+
+from app.exceptions.user_service_exceptions import UserNotFoundException
+
 class UserService(BaseModel):
 
     _db:MongoDbClient  = PrivateAttr()
@@ -27,6 +30,8 @@ class UserService(BaseModel):
     
     async def get_user_by_number(self, phone_number: str) -> User:
         user_dict = await self._db.find_one(self._collection_name,{'phone_number': phone_number})
+        if not user_dict:
+            raise UserNotFoundException("User doesnt exist")
         user = User(**user_dict)
         return user
         
