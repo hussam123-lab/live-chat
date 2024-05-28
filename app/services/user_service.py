@@ -35,10 +35,9 @@ class UserService(BaseModel):
         user = User(**user_dict)
         return user
         
-    async def add_contact_to_user(self, user: User, contact: UUID ) -> None:
+    async def add_contact_to_user(self, user: User, contact: UUID ) -> User:
         user_copy = deepcopy(user)
-        contacts = [contact]
+        contacts = user_copy.contacts +  [contact]
         user.contacts = contacts
-        print(user_copy)
-        print(user)
         await self._db.update_one(collection=self._collection_name,query=user_copy,update=user)
+        return user

@@ -20,6 +20,14 @@ async def create_user(user_request: UserRequest, user_service: UserService = Dep
     except ValidationError as err:
         print("Validation error:", err)
 
+@router.get("/users/{user_id}")
+async def get_users(user_id: UUID, user_service: UserService = Depends(get_user_service)) -> User:
+    try:
+        return await user_service.get_user_by_id(user_id=user_id)
+    
+    except ValidationError as err:
+        print("Validation error:", err)
+
 @router.get("/users")
 async def get_users(user_service: UserService = Depends(get_user_service)) -> List[User]:
     try:
@@ -29,11 +37,11 @@ async def get_users(user_service: UserService = Depends(get_user_service)) -> Li
         print("Validation error:", err)
 
 @router.post("/users/{user_id}/add_contact")
-async def add_contact_by_phone_number(user_id: UUID, contacts_request: ContactsRequest, user_service: UserService = Depends(get_user_service)) -> None:
+async def add_contact_by_phone_number(user_id: UUID, contacts_request: ContactsRequest, user_service: UserService = Depends(get_user_service)) -> User:
     try:
         user = await user_service.get_user_by_id(user_id)
         contact = await user_service.get_user_by_number(contacts_request.phone_number)
-        await user_service.add_contact_to_user(user=user,contact=contact.user_id)
+        return await user_service.add_contact_to_user(user=user,contact=contact.user_id)
         
     except UserNotFoundException as e:
         raise e
